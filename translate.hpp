@@ -43,11 +43,39 @@ namespace yuri {
 		}
 		bool analyse();
 		unsigned sext(unsigned x,int n) {
-			return (x & (1U << (n - 1))) ? ((((0xffffffff >> n) << n)& x) : x;
+			return (x & (1U << (n - 1))) ? (((0xffffffff >> n) << n)& x) : x;
 		}
 		unsigned I(unsigned data) {
-			unsigned ans = 0;
-			ans&=((1<<30)-1)&(~((1<<20)-1))
+			unsigned ans;
+			ans = ((data & (((1U << 32) - 1U) & (~((1U << 20) - 1U)))) >> 20);//20-31 to 0-11
+			return sext(ans, 12);
+		}
+		unsigned S(unsigned data) {
+			unsigned ans;
+			ans= ((data & (((1U << 12) - 1U) & (~((1U << 7) - 1U)))) >> 7);//7-11 to 0-4
+			ans |= ((data & (((1U << 32) - 1U) & (~((1U << 25) - 1U)))) >> 20);//25-31 to 5-11
+			return sext(ans, 12);
+		}
+		unsigned B(unsigned data) {
+			unsigned ans;
+			ans = ((data & (((1U << 12) - 1U) & (~((1U << 8) - 1U)))) >> 7);//8-11 to 1-4
+			ans |= ((data & (((1U << 31) - 1U) & (~((1U << 25) - 1U)))) >> 20);//25-30 to 5-11
+			ans |= (data & (1U << 7)) << 4;//7 to 11
+			ans |= (data & (1U << 31)) >> 19;//31 to 12
+			return sext(ans, 13);
+		}
+		unsigned U(unsigned data) {
+			unsigned ans;
+			ans = (data & ((0xffffffff) & (~((1U << 12) - 1))));//12-31 to 12-31
+			return ans;
+		}
+		unsigned J(unsigned data) {
+			unsigned ans;
+			ans = ((data & (((1U << 32) - 1U) & (~((1U << 21) - 1U)))) >> 20);//21-31 to 1-11
+			ans |= (data & (1U << 20)) >> 9;//20 to 11
+			ans |= (data & ((1U << 20) - 1U) & (~((1U << 12) - 1U)));//12-19 to 12-19;
+			ans |= (data & (1U << 31)) >> 11;//31 to 20
+			return sext(ans, 21);
 		}
 	public:
 		READIN(const char* name="RISC-V") {
@@ -75,9 +103,11 @@ namespace yuri {
 		case 55: {
 			rd = ((memory[ptr] & (((1 << 11) - 1) & (~((1 << 7) - 1)))) >> 7);
 			immediate = U(memory[ptr]);
+			LUI(immediate, rd);
 			break;
 		}
 		case 23: {
+
 			break;
 		}
 		}
