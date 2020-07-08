@@ -19,9 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="operator.hpp" />
+    <ClInclude Include="instruction_decode.hpp" />
+    <ClInclude Include="instruction_fetch.hpp" />
+    <ClInclude Include="execute.hpp" />
+    <ClInclude Include="memory_access.hpp" />
     <ClInclude Include="register.hpp" />
-    <ClInclude Include="translate.hpp" />
+    <ClInclude Include="tools.hpp" />
+    <ClInclude Include="write_back.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

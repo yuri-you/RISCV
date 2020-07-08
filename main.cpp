@@ -12,8 +12,10 @@ unsigned J(unsigned data) {
 	return sext(ans, 21);
 }
 int main() {
-	unsigned int a;
-	cin >> a;
-	cout << J(a);
+	unsigned int a[10];
+	for (int i = 0; i < 10; ++i) {
+		a[i] = 0xffff0000;
+	}
+	cout << (unsigned)(*(unsigned short*)((unsigned char*)(a)+1));
 	return 0;
 }
