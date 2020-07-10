@@ -9,8 +9,9 @@
 using std::cin;
 using std::cout;
 int main() {
-    char name[100];
-    cin >> name;
+    const char* name;
+    //cin >> name;
+    name = "pi.data";
     MEM doc(name);
     ID tmp1;
     EX tmp2;

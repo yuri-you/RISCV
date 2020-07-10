@@ -19,6 +19,7 @@ bool WB(MA get) {
 		//case _BEQ:case _BLT:case _BNE:case _BGE:case _BLTU:case _BGEU:pc = get.rpc; break;
 		}
 		pc = get.rpc;
+		x[0] = 0;
 		return true;
 	}
 

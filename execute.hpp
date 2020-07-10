@@ -62,6 +62,27 @@ struct EX {
 		case _XORI:result = other.rst1 ^ other.immediate;  rpc += 4; break;
 		case _ORI:result = other.rst1 | other.immediate; rpc += 4; break;
 		case _ANDI:result = other.rst1 & other.immediate; rpc += 4; break;
+		case _SLLI: {
+			if (!(other.immediate & (1U << 5))) {
+				result = other.rst1 << other.immediate;
+			}
+			rpc += 4;
+			break;
+		}
+		case _SRLI: {
+			if (!(other.immediate & (1U << 5))) {
+				result = other.rst1 >> other.immediate;
+			}
+			rpc += 4;
+			break;
+		}
+		case _SRAI: {
+			if (!(other.immediate & (1U << 5))) {
+				result = sext(other.rst1 >> other.immediate,32-other.immediate);
+			}
+			rpc += 4;
+			break;
+		}
 		case _ADD:result = other.rst1 + other.rst2;  rpc += 4; break;
 		case _SUB:result = other.rst1 - other.rst2;  rpc += 4; break;
 		case _SLL:result = other.rst1 << (other.rst2 & ((1U << 5) - 1U));  rpc += 4; break;

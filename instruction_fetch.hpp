@@ -5,6 +5,7 @@
 #include <iomanip>
 #include"register.hpp"
 //#include"execute.hpp"
+unsigned count = 0;
 class MEM;
 struct IF {
 	unsigned rd, rst1, rst2, memory;
@@ -83,9 +84,8 @@ public:
 };
 IF MEM::fetch() {
 	IF inf;
-	std::cout << "now in the position:" << std::hex << pc << std::endl;
 	unsigned mem = memory[pc >> 2];
-	if (mem == 0x0ff00531U) {
+	if (mem == 0x0ff00513U) {
 		inf.op = _OUT;
 		return inf;
 	}
@@ -118,10 +118,11 @@ IF MEM::fetch() {
 		break;
 	}
 	case 99: {
+		inf.rst1 = ((mem & (((1U << 20) - 1U) & (~((1U << 15) - 1U)))) >> 15);
+		inf.rst2 = ((mem & (((1U << 25) - 1U) & (~((1U << 20) - 1U)))) >> 20);
+		inf.type = _B;
 		switch ((mem & (((1U << 15) - 1) & (~((1U << 12) - 1U)))) >> 12) {
-			inf.rst1 = ((mem & (((1U << 20) - 1U) & (~((1U << 15) - 1U)))) >> 15);
-			inf.rst2 = ((mem & (((1U << 25) - 1U) & (~((1U << 20) - 1U)))) >> 20);
-			inf.type = _B;
+
 		case 0: {//BEQ
 			inf.op = _BEQ;
 			break;
@@ -151,7 +152,7 @@ IF MEM::fetch() {
 	}
 	case 3: {
 		inf.rst1 = (mem & (((1U << 20) - 1) & (~((1U << 15) - 1U)))) >> 15;
-		inf.rd = (mem & (((1U << 12) - 1) & (~((1U << 17) - 1U)))) >> 7;
+		inf.rd = (mem & (((1U << 12) - 1) & (~((1U << 7) - 1U)))) >> 7;
 		inf.type = _I;
 		switch ((mem & (((1U << 15) - 1) & (~((1U << 12) - 1U)))) >> 12) {
 		case 0: {//LB
@@ -175,8 +176,9 @@ IF MEM::fetch() {
 			break;
 		}
 		}
+		break;
 	}
-	case 35: {
+	case 35: {//S类
 		inf.rst1 = ((mem & (((1U << 20) - 1U) & (~((1U << 15) - 1U)))) >> 15);
 		inf.rst2 = ((mem & (((1U << 25) - 1U) & (~((1U << 20) - 1U)))) >> 20);
 		inf.type = _S;
@@ -191,7 +193,7 @@ IF MEM::fetch() {
 		inf.rd = ((mem & (((1U << 12) - 1U) & (~((1U << 7) - 1U)))) >> 7);
 		inf.rst1 = ((mem & (((1U << 20) - 1U) & (~((1U << 15) - 1U)))) >> 15);
 		switch ((mem & (((1U << 15) - 1) & (~((1U << 12) - 1U)))) >> 12) {
-		case 1:inf.op = _SLLI; inf.type = _R; break;
+		case 1:inf.op = _SLLI; inf.type = _I; break;
 		case 5: {
 			inf.type = _I;
 			if (mem >> 30) {
@@ -199,6 +201,7 @@ IF MEM::fetch() {
 				inf.memory &= (~(1 << 30));
 			}//把第30位置零
 			else inf.op = _SRLI;
+			break;
 		}
 		case 0:inf.type = _I; inf.op = _ADDI; break;
 		case 2:inf.type = _I; inf.op = _SLTI; break;
@@ -234,6 +237,11 @@ IF MEM::fetch() {
 		}
 	} 
 	}
+	count++;
+	std::cout << std::dec<<count<<' '<<std::hex << pc<<' ';
+	yout(inf.op);
+	for (int i = 0; i < 32; ++i)std::cout << std::dec << x[i] << ' ';
+	std::cout << std::endl;
 	return inf;
 }
 #endif 
