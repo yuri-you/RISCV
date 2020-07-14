@@ -22,10 +22,10 @@ void now(command other) {
     std::cout << std::endl;
 }
 int main() {
-    const char* name;
-    //cin >> name;
-    name = "C:\\Users\\yurii\\Desktop\\1\\testcases\\basicopt1.data";
-    MEM doc(name);
+    //char name[100];
+    //std::cin >> name;
+    //name = "array_test1.data";
+    MEM doc;
     //do {
     //    tmp1 = doc.fetch();
     //    tmp2 = tmp1;

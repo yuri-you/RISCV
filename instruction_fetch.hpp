@@ -69,10 +69,10 @@ private:
 		}
 	}
 public:
-	MEM(const char* name = "RISC-V") {
+	MEM() {
 		size = 1 << 20;
 		memory = new unsigned[size];
-		fileptr = freopen(name, "r", stdin);
+		//fileptr = freopen(name, "r", stdin);
 		memset(memory, 0, 4 * size);
 		read_data();
 		pc = 0;

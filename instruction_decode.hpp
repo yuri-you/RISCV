@@ -12,13 +12,13 @@ struct ID {
 private:
 	unsigned I(unsigned data) {
 		unsigned ans;
-		ans = ((data & (((1U << 32) - 1U) & (~((1U << 20) - 1U)))) >> 20);//20-31 to 0-11
+		ans = ((data & ((~0U) & (~((1U << 20) - 1U)))) >> 20);//20-31 to 0-11
 		return sext(ans, 12);
 	}
 	unsigned S(unsigned data) {
 		unsigned ans;
 		ans = ((data & (((1U << 12) - 1U) & (~((1U << 7) - 1U)))) >> 7);//7-11 to 0-4
-		ans |= ((data & (((1U << 32) - 1U) & (~((1U << 25) - 1U)))) >> 20);//25-31 to 5-11
+		ans |= ((data & ((~0U) & (~((1U << 25) - 1U)))) >> 20);//25-31 to 5-11
 		return sext(ans, 12);
 	}
 	unsigned B(unsigned data) {
@@ -36,7 +36,7 @@ private:
 	}
 	unsigned J(unsigned data) {
 		unsigned ans;
-		ans = ((data & (((1U << 32) - 1U) & (~((1U << 21) - 1U)))) >> 20);//21-31 to 1-11
+		ans = ((data & ((~0U) & (~((1U << 21) - 1U)))) >> 20);//21-31 to 1-11
 		ans |= (data & (1U << 20)) >> 9;//20 to 11
 		ans |= (data & ((1U << 20) - 1U) & (~((1U << 12) - 1U)));//12-19 to 12-19;
 		ans |= (data & (1U << 31)) >> 11;//31 to 20
