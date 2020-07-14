@@ -14,11 +14,10 @@ bool WB(MA get) {
 		case _SLLI:case _SRLI:case _SRAI:
 		case _ADD:case _SUB:case _SLL:case _SLT:case _SLTU:case _SRL:case _SRA:
 		case _XOR:case _OR:case _AND:
-			//x[get.rd] = get.receive; break;
-		case _JAL:case _JALR:x[get.rd] = get.receive;  break;
-		//case _BEQ:case _BLT:case _BNE:case _BGE:case _BLTU:case _BGEU:pc = get.rpc; break;
+		x[get.rd] = get.receive;  break;
+		case _JAL:case _JALR:pc = get.rpc + 4; x[get.rd] = get.receive; --pc_of_jump; is_pc_forwarding = false; break;
+		case _BEQ:case _BLT:case _BNE:case _BGE:case _BLTU:case _BGEU:pc = get.rpc+4; --pc_of_jump; is_pc_forwarding = false; break;
 		}
-		pc = get.rpc;
 		x[0] = 0;
 		return true;
 	}

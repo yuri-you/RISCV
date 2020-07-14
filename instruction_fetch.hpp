@@ -8,11 +8,13 @@
 unsigned count = 0;
 class MEM;
 struct IF {
-	unsigned rd, rst1, rst2, memory;
+	unsigned rd, rst1, rst2, memory,rpc;
 	command op;
 	types type;
 	MEM* document;
-	//IF(){}
+	bool yrst1, yrst2;
+	bool able_to_read();
+	IF() { rd = 33; yrst1 = yrst2 = false; }
 	//IF(const IF& other) {
 	//	rd = other.rd;
 	//	rst1 = other.rst1;
@@ -75,18 +77,39 @@ public:
 		read_data();
 		pc = 0;
 	}
-	~MEM() { delete[]memory; fclose(fileptr); }
+	void dMEM() { 
+		delete[]memory; 
+		fclose(fileptr); 
+	}
 	//template<class T>
 	//T fetch_data(uint place,T type_of_function){
 	//	return *((T*)(&memory[place]));
 	//}
 	IF fetch();
 };
+bool IF::able_to_read() {
+	if (yrst1) {
+		if (wait_for_store[rst1])return false;
+	}
+	if (yrst2) {
+		if (wait_for_store[rst2])return false;
+	}
+	return true;
+}
 IF MEM::fetch() {
 	IF inf;
-	unsigned mem = memory[pc >> 2];
+	unsigned mem;
+	if (is_pc_forwarding) {
+		mem = memory[pc_forwarding >> 2];
+		inf.rpc = pc_forwarding;
+	}
+	else {
+		mem = memory[pc >> 2];
+		inf.rpc = pc;
+	}
 	if (mem == 0x0ff00513U) {
 		inf.op = _OUT;
+		finish = true;
 		return inf;
 	}
 	inf.memory = mem;
@@ -108,19 +131,24 @@ IF MEM::fetch() {
 		inf.rd = ((mem & (((1U << 12) - 1U) & (~((1U << 7) - 1U)))) >> 7);
 		inf.type = _J;
 		inf.op = _JAL;
+		++pc_of_jump;
 		break;
 	}
 	case 103: {//JALR
 		inf.rd = ((mem & (((1U << 12) - 1U) & (~((1U << 7) - 1U)))) >> 7);
 		inf.rst1 = ((mem & (((1U << 20) - 1U) & (~((1U << 15) - 1U)))) >> 15);
+		inf.yrst1 = true;
 		inf.type = _I;
 		inf.op = _JALR;
+		++pc_of_jump;
 		break;
 	}
 	case 99: {
 		inf.rst1 = ((mem & (((1U << 20) - 1U) & (~((1U << 15) - 1U)))) >> 15);
 		inf.rst2 = ((mem & (((1U << 25) - 1U) & (~((1U << 20) - 1U)))) >> 20);
+		inf.yrst1 = inf.yrst2 = true;
 		inf.type = _B;
+		++pc_of_jump;
 		switch ((mem & (((1U << 15) - 1) & (~((1U << 12) - 1U)))) >> 12) {
 
 		case 0: {//BEQ
@@ -141,7 +169,7 @@ IF MEM::fetch() {
 		}
 		case 6: {//BLTU
 			inf.op = _BLTU;
-			break;
+break;
 		}
 		case 7: {//BGEU
 			inf.op = _BGEU;
@@ -152,6 +180,7 @@ IF MEM::fetch() {
 	}
 	case 3: {
 		inf.rst1 = (mem & (((1U << 20) - 1) & (~((1U << 15) - 1U)))) >> 15;
+		inf.yrst1 = true;
 		inf.rd = (mem & (((1U << 12) - 1) & (~((1U << 7) - 1U)))) >> 7;
 		inf.type = _I;
 		switch ((mem & (((1U << 15) - 1) & (~((1U << 12) - 1U)))) >> 12) {
@@ -181,6 +210,7 @@ IF MEM::fetch() {
 	case 35: {//S¿‡
 		inf.rst1 = ((mem & (((1U << 20) - 1U) & (~((1U << 15) - 1U)))) >> 15);
 		inf.rst2 = ((mem & (((1U << 25) - 1U) & (~((1U << 20) - 1U)))) >> 20);
+		inf.yrst1 = inf.yrst2 = true;
 		inf.type = _S;
 		switch ((mem & (((1U << 15) - 1) & (~((1U << 12) - 1U)))) >> 12) {
 		case 0:inf.op = _SB; break;
@@ -192,6 +222,7 @@ IF MEM::fetch() {
 	case 19: {
 		inf.rd = ((mem & (((1U << 12) - 1U) & (~((1U << 7) - 1U)))) >> 7);
 		inf.rst1 = ((mem & (((1U << 20) - 1U) & (~((1U << 15) - 1U)))) >> 15);
+		inf.yrst1 = true;
 		switch ((mem & (((1U << 15) - 1) & (~((1U << 12) - 1U)))) >> 12) {
 		case 1:inf.op = _SLLI; inf.type = _I; break;
 		case 5: {
@@ -216,6 +247,7 @@ IF MEM::fetch() {
 		inf.rd = ((mem & (((1U << 12) - 1U) & (~((1U << 7) - 1U)))) >> 7);
 		inf.rst1 = ((mem & (((1U << 20) - 1U) & (~((1U << 15) - 1U)))) >> 15);
 		inf.rst2 = ((mem & (((1U << 25) - 1U) & (~((1U << 20) - 1U)))) >> 20);
+		inf.yrst1 = inf.yrst2 = true;
 		inf.type = _R;
 		switch ((mem & (((1U << 15) - 1) & (~((1U << 12) - 1U)))) >> 12) {
 		case 0: {
@@ -235,13 +267,9 @@ IF MEM::fetch() {
 		case 6:inf.op = _OR; break;
 		case 7:inf.op = _AND; break;
 		}
-	} 
 	}
-	count++;
-	std::cout << std::dec<<count<<' '<<std::hex << pc<<' ';
-	yout(inf.op);
-	for (int i = 0; i < 32; ++i)std::cout << std::dec << x[i] << ' ';
-	std::cout << std::endl;
+	}
+	pc += 4;
 	return inf;
 }
 #endif 

@@ -2,9 +2,9 @@
 #define INSTRUCTION_DECODE_HPP
 #include"register.hpp"
 #include"instruction_fetch.hpp"
-inline bool is_range_legal(unsigned x1) {
-	return (x1 <= 31 && x1 >= 0);
-}
+//inline bool is_range_legal(unsigned x1) {
+//	return (x1 <= 31 && x1 >= 0);
+//}
 struct ID {
 	unsigned rd, rst1, rst2, immediate, rpc;//rd是地址,rst是取出来的数据
 	command op;
@@ -51,11 +51,11 @@ public:
 			return;
 		}
 		rd = other.rd;
-		if (is_range_legal(other.rst1))rst1 = x[other.rst1];
-		if (is_range_legal(other.rst2))rst2 = x[other.rst2];
+		if (other.yrst1)rst1 = x[other.rst1];
+		if (other.yrst2)rst2 = x[other.rst2];
 		op = other.op;
-		rpc = pc;
 		document = other.document;
+		rpc = other.rpc;
 		switch (other.type) {
 		case _B:immediate = B(other.memory); break;
 		case _I:immediate = I(other.memory); break;
