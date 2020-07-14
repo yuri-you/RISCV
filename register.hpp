@@ -21,17 +21,88 @@
 	bool finish = false,is_pc_forwarding=false;
 	int MAtime = 0;
 	unsigned pc_forwarding = 0;
-	int counter = 1;
 	unsigned alltimes = 0, righttimes = 0;
 	bool popstore = false;
+	unsigned b00 = 0, b01 = 0, b10 = 0, b11 = 0, lastrecord[2] = { 0 };
 	bool predict() {
-		return (counter > 1);
+		switch ((lastrecord[0] << 1) + lastrecord[1]) {
+		case 0:return (b00 > 1);
+		case 1:return (b01 > 1);
+		case 2:return (b10 > 1);
+		case 3:return(b11 > 1);
+		}
 	}
 	void add_counter() {
-		if (counter < 3)++counter;
+		switch ((lastrecord[0] << 1) + lastrecord[1]) {
+		case 0: {
+			if (b00 < 3) {
+				++b00;
+			}
+			lastrecord[0] = lastrecord[1];
+			lastrecord[1] = 1;
+			break;
+		}
+		case 1: {
+			if (b01 < 3) {
+				++b01;
+			}
+			lastrecord[0] = lastrecord[1];
+			lastrecord[1] = 1;
+			break;
+		}
+		case 2: {
+			if (b10 < 3) {
+				++b10;
+			}
+			lastrecord[0] = lastrecord[1];
+			lastrecord[1] = 1;
+			break;
+		}
+		case 3: {
+			if (b11 < 3) {
+				++b11;
+			}
+			lastrecord[0] = lastrecord[1];
+			lastrecord[1] = 1;
+			break;
+		}
+		}
 	}
 	void minus_counter() {
-		if (counter > 0)--counter;
+		switch ((lastrecord[0] << 1) + lastrecord[1]) {
+		case 0: {
+			if (b00 >0) {
+				--b00;
+			}
+			lastrecord[0] = lastrecord[1];
+			lastrecord[1] = 0;
+			break;
+		}
+		case 1: {
+			if (b01 > 0) {
+				--b01;
+			}
+			lastrecord[0] = lastrecord[1];
+			lastrecord[1] = 0;
+			break;
+		}
+		case 2: {
+			if (b10 > 0) {
+				--b10;
+			}
+			lastrecord[0] = lastrecord[1];
+			lastrecord[1] = 0;
+			break;
+		}
+		case 3: {
+			if (b11 > 0) {
+				--b11;
+			}
+			lastrecord[0] = lastrecord[1];
+			lastrecord[1] = 0;
+			break;
+		}
+		}
 	}
 	void yout(command op) {
 		switch (op) {

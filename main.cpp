@@ -24,7 +24,7 @@ void now(command other) {
 int main() {
     const char* name;
     //cin >> name;
-    name = "pi.data";
+    name = "C:\\Users\\yurii\\Desktop\\1\\testcases\\basicopt1.data";
     MEM doc(name);
     //do {
     //    tmp1 = doc.fetch();
