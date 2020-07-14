@@ -4,7 +4,6 @@
 #include"register.hpp"
 #include"instruction_decode.hpp"
 #include"instruction_fetch.hpp"
-#include<cstdio>
 struct MA {
 	unsigned receive;
 	command op;
@@ -37,7 +36,7 @@ struct MA {
 		}
 		case _SW:*((unsigned*)((unsigned char*)(other.document->memory) + other.result)) = other.rst2; break;
 		case _BEQ:case _BLT:case _BNE:case _BGE:case _BLTU:case _BGEU:
-		case _JAL:case _JALR:receive = other.result; is_pc_forwarding = true; pc_forwarding = rpc; break;//BNE
+		case _JAL:case _JALR:receive = other.result; is_pc_forwarding = true; pc_forwarding = rpc; break;
 		default:receive = other.result; 
 		}
 	}

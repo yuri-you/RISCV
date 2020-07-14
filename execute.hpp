@@ -18,40 +18,142 @@ struct EX {
 		rst2 = other.rst2;
 		rd = other.rd;
 		document = other.document;
-		rpc=other.rpc;
+		rpc = other.rpc;
 		op = other.op;
 		switch (op) {
 		case _AUIPC:result = rpc + other.immediate; break;
 		case _JAL:result = rpc + 4;  rpc += other.immediate;  break;
 		case _JALR:result = rpc + 4;  rpc = (other.rst1 + other.immediate) & (~1);  break;
 		case _BEQ: {
-			if (other.rst1 == other.rst2)rpc += other.immediate;
-			else rpc += 4;
+			if (other.rst1 == other.rst2) {
+				rpc += other.immediate;
+				add_counter();
+				if (rd == 0) {
+					popstore = true;
+					++pc_of_jump;
+					--righttimes;
+				}
+			}
+			else {
+				rpc += 4;
+				op = _NOT_JUMP;
+				minus_counter();
+				if (rd == 1) {
+					--pc_of_jump;
+					--righttimes;
+				}
+			}
+			rd = 33;//借用rd后要还原
 			break;
 		}
 		case _BNE: {
-			if (other.rst1 != other.rst2)rpc += other.immediate;
-			else rpc += 4;
+			if (other.rst1 != other.rst2) {
+				rpc += other.immediate;
+				add_counter();
+				if (rd == 0) {
+					popstore = true;
+					++pc_of_jump;
+					--righttimes;
+				}
+			}
+			else {
+				rpc += 4;
+				op = _NOT_JUMP;
+				minus_counter();
+				if (rd == 1) {
+					--pc_of_jump;
+					--righttimes;
+				}
+			}
+			rd = 33;
 			break;
 		}
 		case _BLT: {
-			if ((int)other.rst1 < (int)other.rst2)rpc += other.immediate;
-			else rpc += 4;
+			if ((int)other.rst1 < (int)other.rst2) {
+				rpc += other.immediate;
+				add_counter();
+				if (rd == 0) {
+					popstore = true;
+					++pc_of_jump;
+					--righttimes;
+				}
+			}
+			else {
+				rpc += 4;
+				op = _NOT_JUMP;
+				minus_counter();
+				if (rd == 1) {
+					--pc_of_jump;
+					--righttimes;
+				}
+			}
+			rd = 33;
 			break;
 		}
 		case _BGE: {
-			if ((int)other.rst1 >= (int)other.rst2)rpc += other.immediate;
-			else rpc += 4;
+			if ((int)other.rst1 >= (int)other.rst2) {
+				rpc += other.immediate;
+				add_counter();
+				if (rd == 0) {
+					popstore = true;
+					++pc_of_jump;
+					--righttimes;
+				}
+			}
+			else {
+				rpc += 4;
+				op = _NOT_JUMP;
+				minus_counter();
+				if (rd == 1) {
+					--pc_of_jump;
+					--righttimes;
+				}
+			}
+			rd = 33;
 			break;
 		}
 		case _BLTU: {
-			if (other.rst1 < other.rst2)rpc += other.immediate;
-			else rpc += 4;
+			if (other.rst1 < other.rst2) {
+				rpc += other.immediate;
+				add_counter();
+				if (rd == 0) {
+					popstore = true;
+					++pc_of_jump;
+					--righttimes;
+				}
+			}
+			else {
+				rpc += 4;
+				op = _NOT_JUMP;
+				minus_counter();
+				if (rd == 1) {
+					--pc_of_jump;
+					--righttimes;
+				}
+			}
+			rd = 33;
 			break;
 		}
 		case _BGEU: {
-			if (other.rst1 >= other.rst2)rpc += other.immediate;
-			else rpc += 4;
+			if (other.rst1 >= other.rst2) {
+				rpc += other.immediate;
+				add_counter();
+				if (rd == 0) {
+					popstore = true;
+					++pc_of_jump;
+					--righttimes;
+				}
+			}
+			else {
+				rpc += 4;
+				op = _NOT_JUMP;
+				minus_counter();
+				if (rd == 1) {
+					--pc_of_jump;
+					--righttimes;
+				}
+			}
+			rd = 33;
 			break;
 		}
 		case _SB:case _SW:case _SH:
@@ -77,7 +179,7 @@ struct EX {
 		}
 		case _SRAI: {
 			if (!(other.immediate & (1U << 5))) {
-				result = sext(other.rst1 >> other.immediate,32-other.immediate);
+				result = sext(other.rst1 >> other.immediate, 32 - other.immediate);
 			}
 			break;
 		}
@@ -89,7 +191,7 @@ struct EX {
 		case _XOR:result = other.rst1 ^ other.rst2;   break;
 		case _OR:result = other.rst1 | other.rst2;  break;
 		case _SRL:result = other.rst1 >> (other.rst2 & ((1U << 5) - 1U));  break;
-		case _SRA:result = sext(other.rst1 >> (other.rst2 & ((1U << 5) - 1U)), 32U - (other.rst2 & ((1U << 5) - 1U)));break;
+		case _SRA:result = sext(other.rst1 >> (other.rst2 & ((1U << 5) - 1U)), 32U - (other.rst2 & ((1U << 5) - 1U))); break;
 		case _AND:result = other.rst1 & other.rst2; break;
 		default: result = other.immediate;
 		}

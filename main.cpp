@@ -14,17 +14,17 @@ std::deque<ID> store2;
 std::deque<EX> store3;
 std::deque<MA> store4;
 void fun(MEM doc);
-void now(MA other) {
+void now(command other) {
     count++;
     std::cout << std::dec << count << ' ' << std::hex << pc << ' ';
-    yout(other.op);
+    yout(other);
     for (int i = 0; i < 32; ++i)std::cout << std::dec << x[i] << ' ';
     std::cout << std::endl;
 }
 int main() {
     const char* name;
     //cin >> name;
-    name = "gcd.data";
+    name = "pi.data";
     MEM doc(name);
     //do {
     //    tmp1 = doc.fetch();
@@ -51,14 +51,15 @@ void fun(MEM doc) {
             --wait_for_store[tmp3.rd];
             ++number;
             WB(tmp3);
-            //now(tmp3);
+            //now(tmp3.op);
         }
         if (!store3.empty()) {
             if (MAtime)--MAtime;
             else {
                 tmp2 = store3.front();
-                store4.push_back(tmp2);
                 store3.pop_front();
+                if (tmp2.op != _NOT_JUMP)store4.push_back(tmp2);
+                //else now(tmp2.op);
             }
             ++number;
         }
@@ -70,17 +71,30 @@ void fun(MEM doc) {
         }
         if (!store1.empty()) {
             if ((store1.front()).able_to_read()) {
-                tmp0 = store1.front();
-                store1.pop_front();
-                store2.push_back(tmp0);
-                ++wait_for_store[tmp0.rd];
+                if (popstore) {
+                    popstore = false;
+                    switch ((store1.back()).op) {
+                    case _BEQ:case _BLT:case _BNE:case _BGE:case _BLTU:case _BGEU:
+                    case _JAL:case _JALR:--pc_of_jump;
+                    }
+                    store1.pop_back();
+                }
+                if (!store1.empty()) {
+                    tmp0 = store1.front();
+                    store1.pop_front();
+                    store2.push_back(tmp0);
+                    ++wait_for_store[tmp0.rd];
+                }
             }
             ++number;
         }
         if (!finish&&(pc_of_jump==0||is_pc_forwarding)) {
+            ++a;
             tmp0 = doc.fetch();
             store1.push_back(tmp0);
             ++number;
         }
     } while (!finish||number);
+    std::cout << std::endl << "alltimes:" << alltimes << " righttimes:" << righttimes<<std::endl;
+    std::cout << "percent:" << std::setiosflags(std::ios::fixed) << std::setprecision(2) << (double)(righttimes)/(double)(alltimes) << std::endl;
 }

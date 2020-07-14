@@ -57,7 +57,19 @@ public:
 		document = other.document;
 		rpc = other.rpc;
 		switch (other.type) {
-		case _B:immediate = B(other.memory); break;
+		case _B: {
+			immediate = B(other.memory);
+			++alltimes;
+			++righttimes;
+			if (predict()) {//in type B,rd is of no use
+				rd = 1;//jump
+			}
+			else {
+				--pc_of_jump;
+				rd = 0;//not jump
+			}
+			break;
+		}
 		case _I:immediate = I(other.memory); break;
 		case _J:immediate = J(other.memory); break;
 		case _U:immediate = U(other.memory); break;
