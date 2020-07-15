@@ -35,6 +35,7 @@
 		case 6:return (b110 > 1);
 		case 7:return(b111 > 1);
 		}
+		return true;
 	}
 	void add_counter() {
 		switch ((lastrecord[0] << 2) + (lastrecord[1] << 1) + lastrecord[2]) {

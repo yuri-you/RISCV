@@ -28,7 +28,6 @@ struct IF {
 class MEM {
 public:
 	unsigned size, * memory;
-	FILE* fileptr;
 	friend struct EX;
 private:
 	void read_data() {
@@ -79,7 +78,6 @@ public:
 	}
 	void dMEM() { 
 		delete[]memory; 
-		fclose(fileptr); 
 	}
 	//template<class T>
 	//T fetch_data(uint place,T type_of_function){
