@@ -95,6 +95,6 @@ void fun(MEM doc) {
             ++number;
         }
     } while (!finish||number);
-    std::cout << std::endl << "alltimes:" << alltimes << " righttimes:" << righttimes<<std::endl;
-    std::cout << "percent:" << std::setiosflags(std::ios::fixed) << std::setprecision(2) << (double)(righttimes)/(double)(alltimes) << std::endl;
+    //std::cout << std::endl << "alltimes:" << alltimes << " righttimes:" << righttimes<<std::endl;
+    //std::cout << "percent:" << std::setiosflags(std::ios::fixed) << std::setprecision(2) << (double)(righttimes)/(double)(alltimes) << std::endl;
 }
