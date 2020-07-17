@@ -12,9 +12,8 @@ struct IF {
 	command op;
 	types type;
 	MEM* document;
-	bool yrst1, yrst2;
 	bool able_to_read();
-	IF() { rd = 33; yrst1 = yrst2 = false; }
+	IF() { rd = rst1 = rst2 = 33; }
 	//IF(const IF& other) {
 	//	rd = other.rd;
 	//	rst1 = other.rst1;
@@ -29,6 +28,7 @@ class MEM {
 public:
 	unsigned size, * memory;
 	friend struct EX;
+	FILE* fileptr;
 private:
 	void read_data() {
 		char get_in;
@@ -68,16 +68,17 @@ private:
 		}
 	}
 public:
-	MEM() {
+	MEM(const char* name) {
 		size = 1 << 20;
 		memory = new unsigned[size];
-		//fileptr = freopen(name, "r", stdin);
+		fileptr = freopen(name, "r", stdin);
 		memset(memory, 0, 4 * size);
 		read_data();
 		pc = 0;
 	}
 	void dMEM() { 
 		delete[]memory; 
+		fclose(fileptr);
 	}
 	//template<class T>
 	//T fetch_data(uint place,T type_of_function){
@@ -86,11 +87,14 @@ public:
 	IF fetch();
 };
 bool IF::able_to_read() {
-	if (yrst1) {
-		if (wait_for_store[rst1])return false;
+	if (rst1 != 33) {
+		if (idm[rst1] || wait_for_store[rst1])return false;
 	}
-	if (yrst2) {
-		if (wait_for_store[rst2])return false;
+	if (rst2 != 33) {
+		if (idm[rst2] || wait_for_store[rst2])return false;
+	}
+	if (rd != 33) {
+		if (idm[rd])return false;//之前仍在运行的rd对这个rd不会导致冒险
 	}
 	return true;
 }
@@ -135,7 +139,6 @@ IF MEM::fetch() {
 	case 103: {//JALR
 		inf.rd = ((mem & (((1U << 12) - 1U) & (~((1U << 7) - 1U)))) >> 7);
 		inf.rst1 = ((mem & (((1U << 20) - 1U) & (~((1U << 15) - 1U)))) >> 15);
-		inf.yrst1 = true;
 		inf.type = _I;
 		inf.op = _JALR;
 		++pc_of_jump;
@@ -144,7 +147,6 @@ IF MEM::fetch() {
 	case 99: {
 		inf.rst1 = ((mem & (((1U << 20) - 1U) & (~((1U << 15) - 1U)))) >> 15);
 		inf.rst2 = ((mem & (((1U << 25) - 1U) & (~((1U << 20) - 1U)))) >> 20);
-		inf.yrst1 = inf.yrst2 = true;
 		inf.type = _B;
 		++pc_of_jump;
 		switch ((mem & (((1U << 15) - 1) & (~((1U << 12) - 1U)))) >> 12) {
@@ -178,7 +180,6 @@ break;
 	}
 	case 3: {
 		inf.rst1 = (mem & (((1U << 20) - 1) & (~((1U << 15) - 1U)))) >> 15;
-		inf.yrst1 = true;
 		inf.rd = (mem & (((1U << 12) - 1) & (~((1U << 7) - 1U)))) >> 7;
 		inf.type = _I;
 		switch ((mem & (((1U << 15) - 1) & (~((1U << 12) - 1U)))) >> 12) {
@@ -208,7 +209,6 @@ break;
 	case 35: {//S类
 		inf.rst1 = ((mem & (((1U << 20) - 1U) & (~((1U << 15) - 1U)))) >> 15);
 		inf.rst2 = ((mem & (((1U << 25) - 1U) & (~((1U << 20) - 1U)))) >> 20);
-		inf.yrst1 = inf.yrst2 = true;
 		inf.type = _S;
 		switch ((mem & (((1U << 15) - 1) & (~((1U << 12) - 1U)))) >> 12) {
 		case 0:inf.op = _SB; break;
@@ -220,7 +220,6 @@ break;
 	case 19: {
 		inf.rd = ((mem & (((1U << 12) - 1U) & (~((1U << 7) - 1U)))) >> 7);
 		inf.rst1 = ((mem & (((1U << 20) - 1U) & (~((1U << 15) - 1U)))) >> 15);
-		inf.yrst1 = true;
 		switch ((mem & (((1U << 15) - 1) & (~((1U << 12) - 1U)))) >> 12) {
 		case 1:inf.op = _SLLI; inf.type = _I; break;
 		case 5: {
@@ -245,7 +244,6 @@ break;
 		inf.rd = ((mem & (((1U << 12) - 1U) & (~((1U << 7) - 1U)))) >> 7);
 		inf.rst1 = ((mem & (((1U << 20) - 1U) & (~((1U << 15) - 1U)))) >> 15);
 		inf.rst2 = ((mem & (((1U << 25) - 1U) & (~((1U << 20) - 1U)))) >> 20);
-		inf.yrst1 = inf.yrst2 = true;
 		inf.type = _R;
 		switch ((mem & (((1U << 15) - 1) & (~((1U << 12) - 1U)))) >> 12) {
 		case 0: {

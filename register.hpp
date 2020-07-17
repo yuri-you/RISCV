@@ -1,5 +1,6 @@
 #ifndef REGISTER_HPP
 #define REGISTER_HPP
+#include<cstring>
 	unsigned sext(unsigned x, int n) {
 		return (x & (1U << (n - 1))) ? (((0xffffffff >> n) << n)| x) : x;
 	}
@@ -23,7 +24,16 @@
 	unsigned pc_forwarding = 0;
 	unsigned alltimes = 0, righttimes = 0;
 	bool popstore = false;
+	bool idm[34] = { false };
+	int mam[34] = { false };
+	void clearidm() {
+		memset(idm, 0, 34 * sizeof(bool));
+	}
 	unsigned b000 = 0, b001 = 0, b010 = 0, b011 = 0, b100 = 0, b101 = 0, b110 = 0, b111 = 0, lastrecord[3] = { 0,1,0 };
+	void predict_result() {
+		std::cout << std::endl << "alltimes:" << alltimes << " righttimes:" << righttimes << std::endl;
+		std::cout << "percent:" << std::setiosflags(std::ios::fixed) << std::setprecision(2) << (double)(righttimes) / (double)(alltimes) << std::endl;
+	}
 	bool predict() {
 		switch ((lastrecord[0] << 2) + (lastrecord[1]<<1)+lastrecord[2]) {
 		case 0:return (b000 > 1);

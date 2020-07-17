@@ -12,7 +12,10 @@ using std::cout;
 std::deque<IF> store1;
 std::deque<ID> store2;
 std::deque<EX> store3;
+std::deque<EX> store3_other;//两个队列交替
 std::deque<MA> store4;
+std::deque<IF> store5;//use for tomasulo  栈
+std::deque<EX>* store_ptr,* store_other;
 void fun(MEM doc);
 void now(command other) {
     count++;
@@ -22,10 +25,12 @@ void now(command other) {
     std::cout << std::endl;
 }
 int main() {
-    //char name[100];
-    //std::cin >> name;
+    char name[100];
+    std::cin >> name;
+    store_ptr = &(store3);
+    store_other = &(store3_other);
     //name = "array_test1.data";
-    MEM doc;
+    MEM doc(name);
     //do {
     //    tmp1 = doc.fetch();
     //    tmp2 = tmp1;
@@ -34,6 +39,7 @@ int main() {
     //while(WB(tmp3));
     fun(doc);
     doc.dMEM();//防止多次析构
+    predict_result();
     return 0;
 }
 void fun(MEM doc) {
@@ -53,48 +59,72 @@ void fun(MEM doc) {
             WB(tmp3);
             //now(tmp3.op);
         }
-        if (!store3.empty()) {
+        if (!(*store_ptr).empty()) {
+            while (!((*store_ptr).empty())) {//让不用MA的直接跳过
+                tmp2 = (*store_ptr).front();
+                if (tmp2.ok())store4.push_back(tmp2);//如果会产生冒险就不跳过MA
+                else (*store_other).push_back(tmp2);
+                (*store_ptr).pop_front();
+            }
+            std::deque<EX>* tmp = store_ptr;
+            store_ptr = store_other;
+            store_other = tmp;//交换store_ptr和store_other
             if (MAtime)--MAtime;
             else {
-                tmp2 = store3.front();
-                store3.pop_front();
-                if (tmp2.op != _NOT_JUMP)store4.push_back(tmp2);
-                //else now(tmp2.op);
+                if (!(*store_ptr).empty()) {
+                    tmp2 = (*store_ptr).front();
+                    (*store_ptr).pop_front();
+                    store4.push_back(tmp2);
+                    switch (tmp2.op) {
+                    case _LH:case _LB:case _LW:case _LBU:case _LHU:--mam[tmp1.rd]; break;
+                    }
+                }
             }
             ++number;
         }
         if (!store2.empty()) {
             tmp1 = store2.front();
-            store3.push_back(tmp1);
+            (*store_ptr).push_back(tmp1);
+            switch (tmp1.op) {
+            case _LH:case _LB:case _LW:case _LBU:case _LHU:++mam[tmp1.rd]; break;
+            }
             store2.pop_front();
             ++number;
         }
         if (!store1.empty()) {
-            if ((store1.front()).able_to_read()) {
-                if (popstore) {
-                    popstore = false;
-                    switch ((store1.back()).op) {
-                    case _BEQ:case _BLT:case _BNE:case _BGE:case _BLTU:case _BGEU:
-                    case _JAL:case _JALR:--pc_of_jump;
-                    }
-                    store1.pop_back();
+            if (popstore) {
+                popstore = false;
+                switch ((store1.back()).op) {
+                case _BEQ:case _BLT:case _BNE:case _BGE:case _BLTU:case _BGEU:
+                case _JAL:case _JALR:--pc_of_jump;
                 }
-                if (!store1.empty()) {
-                    tmp0 = store1.front();
-                    store1.pop_front();
-                    store2.push_back(tmp0);
-                    ++wait_for_store[tmp0.rd];
-                }
+                store1.pop_back();
             }
+            while (!store1.empty()&&!(store1.front().able_to_read())) {
+                tmp0 = store1.front();
+                idm[tmp0.rst1]=true;
+                idm[tmp0.rst2]=true;
+                idm[tmp0.rd] = true;
+                store1.pop_front();
+                store5.push_back(tmp0);
+            }
+            if (!store1.empty()) {
+                tmp0 = store1.front();
+                store1.pop_front();
+                store2.push_back(tmp0);
+                ++wait_for_store[tmp0.rd];
+            }
+            for (int i = store5.size() - 1; i >= 0; --i) {
+                store1.push_front(store5[i]);
+            }
+            store5.clear();
+            clearidm();
             ++number;
         }
         if (!finish&&(pc_of_jump==0||is_pc_forwarding)) {
-            ++a;
             tmp0 = doc.fetch();
             store1.push_back(tmp0);
             ++number;
         }
     } while (!finish||number);
-    //std::cout << std::endl << "alltimes:" << alltimes << " righttimes:" << righttimes<<std::endl;
-    //std::cout << "percent:" << std::setiosflags(std::ios::fixed) << std::setprecision(2) << (double)(righttimes)/(double)(alltimes) << std::endl;
 }

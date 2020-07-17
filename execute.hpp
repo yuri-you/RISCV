@@ -8,6 +8,12 @@ struct EX {
 	command op;
 	unsigned rd, rpc, rst2;
 	MEM* document;
+	bool ok() {
+		if (rd != 33) {
+			if (mam[rd])return false;
+		}
+		return true;
+	}
 	EX() {}
 	EX(const ID& other) {
 		if (other.op == _OUT) {

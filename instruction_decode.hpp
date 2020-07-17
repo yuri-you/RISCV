@@ -51,8 +51,8 @@ public:
 			return;
 		}
 		rd = other.rd;
-		if (other.yrst1)rst1 = x[other.rst1];
-		if (other.yrst2)rst2 = x[other.rst2];
+		if (other.rst1!=33)rst1 = x[other.rst1];
+		if (other.rst2!=33)rst2 = x[other.rst2];
 		op = other.op;
 		document = other.document;
 		rpc = other.rpc;
