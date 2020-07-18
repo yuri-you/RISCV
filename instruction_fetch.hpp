@@ -87,6 +87,11 @@ public:
 	IF fetch();
 };
 bool IF::able_to_read() {
+	if (!first) {
+		switch (op) {
+		case _LH:case _LB:case _LW:case _LBU:case _LHU:return false;
+		}
+	}
 	if (rst1 != 33) {
 		if (idm[rst1] || wait_for_store[rst1])return false;
 	}
