@@ -26,7 +26,7 @@
 	bool popstore = false;
 	bool idm[34] = { false };
 	bool mam[34] = { false };
-	bool first;
+	bool first=false;
 	void clearidm() {
 		memset(idm, 0, 34 * sizeof(bool));
 	}

@@ -69,10 +69,10 @@ private:
 	}
 public:
 	MEM(const char* name) {
-		size = 1 << 20;
+		size = 1<<28;
 		memory = new unsigned[size];
 		fileptr = freopen(name, "r", stdin);
-		memset(memory, 0, 4 * size);
+		memset(memory, 0, sizeof(memory));
 		read_data();
 		pc = 0;
 	}
